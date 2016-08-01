@@ -133,6 +133,19 @@ var Api = {
                 resolve(Api.getRecords(url, startPosition, maxRecords, filter));
             });
         });
+    },
+    workspaceSearch: function(url, startPosition, maxRecords, text, workspace) {
+        return new Promise((resolve) => {
+            require.ensure(['../utils/ogc/CSW', '../utils/ogc/Filter'], () => {
+                const {Filter} = require('../utils/ogc/Filter');
+                let filter = null;
+                if (text) {
+                    let ops = Filter.propertyIsLike("identifier", workspace + ":%" + text + "%");
+                    filter = Filter.filter(ops);
+                }
+                resolve(Api.getRecords(url, startPosition, maxRecords, filter));
+            });
+        });
     }
 };
 
