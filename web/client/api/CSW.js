@@ -138,11 +138,10 @@ var Api = {
         return new Promise((resolve) => {
             require.ensure(['../utils/ogc/CSW', '../utils/ogc/Filter'], () => {
                 const {Filter} = require('../utils/ogc/Filter');
-                let filter = null;
-                if (text) {
-                    let ops = Filter.propertyIsLike("identifier", workspace + ":%" + text + "%");
-                    filter = Filter.filter(ops);
-                }
+                const workspaceTerm = workspace || "%";
+                const layerNameTerm = text && "%" + text + "%" || "%";
+                const ops = Filter.propertyIsLike("identifier", workspaceTerm + ":" + layerNameTerm);
+                const filter = Filter.filter(ops);
                 resolve(Api.getRecords(url, startPosition, maxRecords, filter));
             });
         });

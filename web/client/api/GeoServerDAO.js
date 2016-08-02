@@ -40,7 +40,7 @@ var Api = {
         const options = {
             'params': {
                 'targetPriority': targetPriority,
-                'rulesIds': rules.join()
+                'rulesIds': rules && rules.map(rule => rule.id).join()
             }
         };
         return axios.get('geofence/rest/rules/move', this.addBaseUrl(options)).then(function(response) {
@@ -51,6 +51,9 @@ var Api = {
         return axios.delete('geofence/rest/rules/id/' + ruleId, this.addBaseUrl({}));
     },
     addRule: function(rule) {
+        if (!rule.access) {
+            rule.access = "ALLOW";
+        }
         return axios.post('geofence/rest/rules', rule, this.addBaseUrl({
             'headers': {
                 'Content': 'application/json'

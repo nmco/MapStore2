@@ -7,8 +7,9 @@
  */
 
 const React = require('react');
-const {Panel} = require('react-bootstrap');
+const {Panel, Alert} = require('react-bootstrap');
 
+const Message = require('../../I18N/Message');
 const RulesTable = require('./RulesTable');
 const RulesTablePagination = require('./RulesTablePagination');
 const RulesTableControls = require('./RulesTableControls');
@@ -18,32 +19,38 @@ const RulesTablePanel = React.createClass({
     propTypes: {
         onSelectRules: React.PropTypes.func,
         moveRules: React.PropTypes.func,
+        moveRulesToPage: React.PropTypes.func,
         loadRules: React.PropTypes.func,
         deleteRules: React.PropTypes.func,
         rules: React.PropTypes.array,
         rulesPage: React.PropTypes.number,
         rulesCount: React.PropTypes.number,
         selectedRules: React.PropTypes.array,
-        updateActiveRule: React.PropTypes.func
+        updateActiveRule: React.PropTypes.func,
+        error: React.PropTypes.object
     },
     contextTypes: {
         messages: React.PropTypes.object
     },
     getDefaultProps() {
         return {
-            loadRules: () => {}
+            loadRules: () => {},
+            error: {}
         };
     },
     componentDidMount() {
-        this.props.loadRules(1);
+        this.props.loadRules(1, false);
     },
     render() {
         return (
-            <Panel header={this.locale("rules")}>
+            <Panel header={LocaleUtils.getMessageById(this.context.messages, "rulesmanager.rules")}>
                 <RulesTableControls
                     deleteRules={this.props.deleteRules}
                     selectedRules={this.props.selectedRules}
                     updateActiveRule={this.props.updateActiveRule}
+                    rulesPage={this.props.rulesPage}
+                    rulesCount={this.props.rulesCount}
+                    moveRulesToPage={this.props.moveRulesToPage}
                     />
                 <RulesTable
                     onSelectRules={this.props.onSelectRules}
@@ -54,12 +61,13 @@ const RulesTablePanel = React.createClass({
                     loadRules={this.props.loadRules}
                     rulesPage={this.props.rulesPage}
                     rulesCount={this.props.rulesCount}/>
+                { this.props.error.context === "table" &&
+                    <Alert className="error-table-panel" bsStyle="danger">
+                        <Message msgId={this.props.error.msgId}/>
+                    </Alert>
+                }
             </Panel>
         );
-    },
-    locale(messageId) {
-        return LocaleUtils.getMessageById(
-            this.context.messages, "rulesmanagers." + messageId);
     }
 });
 

@@ -29,7 +29,8 @@ const RuleAttributes = React.createClass({
         ruleAttributes: React.PropTypes.object,
         showAccess: React.PropTypes.bool,
         containerClassName: React.PropTypes.string,
-        selectClassName: React.PropTypes.string
+        selectClassName: React.PropTypes.string,
+        context: React.PropTypes.string
     },
     contextTypes: {
         messages: React.PropTypes.object
@@ -57,18 +58,18 @@ const RuleAttributes = React.createClass({
     },
     render() {
         const requestNames = this.getRequestsNames() || [];
-        const requestFilterValue = this.filterValue(this.props.ruleAttributes.request, requestNames);
+        const selectedWorkSpace = this.props.ruleAttributes.workspace;
         return (
             <Panel header={this.props.panelHeader} className={this.props.containerClassName}>
                 <Select
-                    loadOptions={this.props.loadRoles}
+                    loadOptions={() => this.props.loadRoles(this.props.context)}
                     onValueUpdated={this.createUpdateFunction('roleName')}
                     selectedValue={this.props.ruleAttributes.roleName}
                     placeholderMsgId={'rulesmanager.role'}
                     options={this.props.options.roles}
                     className={this.props.selectClassName}/>
                 <Select
-                    loadOptions={this.props.loadUsers}
+                    loadOptions={() => this.props.loadUsers(this.props.context)}
                     onValueUpdated={this.createUpdateFunction('userName')}
                     selectedValue={this.props.ruleAttributes.userName}
                     placeholderMsgId={'rulesmanager.user'}
@@ -82,21 +83,21 @@ const RuleAttributes = React.createClass({
                     className={this.props.selectClassName}/>
                 <Select
                     onValueUpdated={this.createUpdateFunction('request')}
-                    selectedValue={requestFilterValue}
+                    selectedValue={this.props.ruleAttributes.service && this.props.ruleAttributes.request}
                     placeholderMsgId={'rulesmanager.request'}
                     options={requestNames}
                     className={this.props.selectClassName}
                     disabled={this.isNullValue(this.props.ruleAttributes.service)}/>
-                <Select loadOptions={this.props.loadWorkspaces}
+                <Select loadOptions={() => this.props.loadWorkspaces(this.props.context)}
                     onValueUpdated={this.createUpdateFunction('workspace', 'layer')}
-                    selectedValue={this.props.ruleAttributes.workspace}
+                    selectedValue={selectedWorkSpace}
                     placeholderMsgId={'rulesmanager.workspace'}
                     options={this.props.options.workspaces}
                     className={this.props.selectClassName}/>
-                <Select loadOptions={this.props.loadLayers}
-                    onInputChange={this.props.loadLayers}
+                <Select loadOptions={() => this.props.loadLayers(undefined, selectedWorkSpace, this.props.context)}
+                    onInputChange={(input) => this.props.loadLayers(input, selectedWorkSpace, this.props.context)}
                     onValueUpdated={this.createUpdateFunction('layer')}
-                    selectedValue={this.props.ruleAttributes.layer}
+                    selectedValue={selectedWorkSpace && this.props.ruleAttributes.layer}
                     placeholderMsgId={'rulesmanager.layer'}
                     options={this.props.options.layers}
                     className={this.props.selectClassName}
@@ -104,7 +105,7 @@ const RuleAttributes = React.createClass({
                 {
                     this.props.showAccess &&
                     <Select onValueUpdated={this.createUpdateFunction('access')}
-                        selectedValue={this.props.ruleAttributes.access}
+                        selectedValue={this.props.ruleAttributes.access || ACCESS_TYPES[0]}
                         placeholderMsgId={'rulesmanager.access'}
                         options={ACCESS_TYPES}
                         className={this.props.selectClassName}/>
@@ -120,13 +121,13 @@ const RuleAttributes = React.createClass({
     },
     createUpdateFunction(attributeName, attributeNameToReset) {
         return function(attributeValue) {
-            if (attributeNameToReset) {
+            if (!attributeNameToReset) {
                 this.props.updateRuleAttributes(
                     {[attributeName]: attributeValue ? attributeValue.value : "*"});
             } else {
                 this.props.updateRuleAttributes(
-                    {[attributeName]: attributeValue ? attributeValue.value : "*"},
-                    {[attributeNameToReset]: undefined});
+                    {[attributeName]: attributeValue ? attributeValue.value : "*",
+                     [attributeNameToReset]: undefined});
             }
         }.bind(this);
     },

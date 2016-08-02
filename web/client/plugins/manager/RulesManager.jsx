@@ -12,7 +12,7 @@ const {createSelector} = require('reselect');
 
 const {rulesSelected, loadRules, moveRules, updateActiveRule,
        deleteRules, addRule, updateRule, loadRoles, loadUsers,
-       loadWorkspaces, loadLayers, updateFiltersValues} = require('../../actions/rulesmanager');
+       loadWorkspaces, loadLayers, updateFiltersValues, moveRulesToPage} = require('../../actions/rulesmanager');
 const {rulesSelector, optionsSelector} = require('../../selectors/rulesmanager');
 
 const genericSelector = (state, name) => state.rulesmanager && state.rulesmanager[name];
@@ -23,17 +23,17 @@ const rulesManagerSelector = createSelector([
     state => genericSelector(state, "rulesPage"),
     state => genericSelector(state, "rulesCount"),
     state => genericSelector(state, "selectedRules"),
-    state => genericSelector(state, "rulesTableError"),
     state => genericSelector(state, "activeRule"),
-    state => genericSelector(state, "filtersValues")
+    state => genericSelector(state, "filtersValues"),
+    state => genericSelector(state, "error")
 ], (rules, options, rulesPage, rulesCount, selectedRules,
-    rulesTableError, activeRule, filtersValues) => ({
+    activeRule, filtersValues, error) => ({
     rules: rules,
     options: options,
     rulesPage: rulesPage,
     rulesCount: rulesCount,
     selectedRules: selectedRules,
-    rulesTableError: rulesTableError,
+    error: error,
     activeRule: activeRule,
     filtersValues: filtersValues
 }));
@@ -41,6 +41,7 @@ const rulesManagerSelector = createSelector([
 const RulesManagerPlugin = connect(rulesManagerSelector, {
     onSelectRules: rulesSelected,
     moveRules: moveRules,
+    moveRulesToPage: moveRulesToPage,
     loadRules: loadRules,
     updateActiveRule: updateActiveRule,
     deleteRules: deleteRules,

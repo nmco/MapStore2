@@ -37,10 +37,9 @@ function rulesmanager(state = {}, action) {
                 rules: action.rules.rules,
                 rulesCount: action.count.count,
                 rulesPage: action.page,
-                selectedRules: [],
+                selectedRules: action.keepSelected ? state.selectedRules : [],
                 activeRule: {},
-                rulesTableError: undefined,
-                modalError: undefined
+                error: undefined
             });
         }
         case UPDATE_ACTIVE_RULE: {
@@ -75,8 +74,10 @@ function rulesmanager(state = {}, action) {
         }
         case ACTION_ERROR: {
             return assign({}, state, {
-                error: action.error,
-                context: action.context
+                error: {
+                    msgId: action.msgId,
+                    context: action.context
+                }
             });
         }
         case OPTIONS_LOADED: {

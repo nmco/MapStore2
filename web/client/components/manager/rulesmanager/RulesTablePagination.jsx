@@ -25,11 +25,13 @@ const RulesTablePagination = React.createClass({
     render() {
         const numberOfPages = Math.ceil(this.props.rulesCount / 10);
         return (
-            <Pagination bsSize="small" prev next first last ellipsis boundaryLinks
-                items={numberOfPages}
-                maxButtons={3}
-                activePage={this.props.rulesPage}
-                onSelect={(event, selectEvent) => this.props.loadRules(selectEvent.eventKey)}/>
+            <div className="rules-pagination">
+                <Pagination bsSize="small" prev next first last ellipsis boundaryLinks
+                    items={numberOfPages}
+                    maxButtons={3}
+                    activePage={this.props.rulesPage}
+                    onSelect={(event, selectEvent) => this.props.loadRules(selectEvent.eventKey, false, "table")}/>
+            </div>
         );
     }
 });

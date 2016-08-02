@@ -28,12 +28,13 @@ function rulesSelected(rules, merge, unselect) {
     };
 }
 
-function rulesLoaded(rules, count, page) {
+function rulesLoaded(rules, count, page, keepSelected) {
     return {
         type: RULES_LOADED,
         rules: rules,
         count: count,
-        page: page
+        page: page,
+        keepSelected: keepSelected
     };
 }
 
@@ -46,10 +47,10 @@ function updateActiveRule(rule, status, merge) {
     };
 }
 
-function actionError(error, context) {
+function actionError(msgId, context) {
     return {
         type: ACTION_ERROR,
-        error: error,
+        msgId: msgId,
         context: context
     };
 }
@@ -74,8 +75,8 @@ function loadRoles(context) {
     return (dispatch) => {
         GeoServerAPI.getGroups().then((result) => {
             dispatch(optionsLoaded('roles', result.roles));
-        }).catch((error) => {
-            dispatch(actionError(error, context));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorLoadingRoles", context));
         });
     };
 }
@@ -84,8 +85,8 @@ function loadUsers(context) {
     return (dispatch) => {
         GeoServerAPI.getUsers().then((result) => {
             dispatch(optionsLoaded('users', result.users));
-        }).catch((error) => {
-            dispatch(actionError(error, context));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorLoadingUsers", context));
         });
     };
 }
@@ -94,8 +95,8 @@ function loadWorkspaces(context) {
     return (dispatch) => {
         GeoServerAPI.getWorkspaces().then((result) => {
             dispatch(optionsLoaded('workspaces', result.workspaces.workspace));
-        }).catch((error) => {
-            dispatch(actionError(error, context));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorLoadingWorkspaces", context));
         });
     };
 }
@@ -105,22 +106,22 @@ function loadLayers(input, workspace, context) {
         const catalogUrl = ConfigUtils.getDefaults().geoServerUrl + 'csw';
         CatalogAPI.workspaceSearch(catalogUrl, 1, 25, input, workspace).then((layers) => {
             dispatch(optionsLoaded('layers', layers));
-        }).catch((error) => {
-            dispatch(actionError(error, context));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorLoadingLayers", context));
         });
     };
 }
 
-function loadRules(page) {
+function loadRules(page, keepSelected) {
     return (dispatch, getState) => {
         const state = getState().rulesmanager || {};
         const filtersValues = state.filtersValues || {};
         axios.all([GeoServerAPI.loadRules(page, filtersValues),
                    GeoServerAPI.getRulesCount(filtersValues)])
             .then(axios.spread((rules, count) => {
-                dispatch(rulesLoaded(rules, count, page));
-            })).catch(error => {
-                dispatch(actionError(error, "table"));
+                dispatch(rulesLoaded(rules, count, page, keepSelected));
+            })).catch(() => {
+                dispatch(actionError("rulesmanager.errorLoadingRules", "table"));
             }
         );
     };
@@ -130,9 +131,34 @@ function moveRules(targetPriority, rules) {
     return (dispatch, getSate) => {
         GeoServerAPI.moveRules(targetPriority, rules).then(() => {
             const state = getSate().rulesmanager || {};
-            dispatch(loadRules(state.rulesPage || 1));
-        }).catch(error => {
-            dispatch(actionError(error, "table"));
+            dispatch(loadRules(state.rulesPage || 1, true));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorMovingRules", "table"));
+        });
+    };
+}
+
+function moveRulesToPage(targetPage, forward, rules) {
+    return (dispatch, getState) => {
+        const state = getState().rulesmanager || {};
+        const filtersValues = state.filtersValues || {};
+        GeoServerAPI.loadRules(targetPage, filtersValues)
+        .then((targetPageRules) => {
+            let index = 0;
+            if (forward) {
+                index = Math.min(rules.length - 1, targetPageRules.rules.length - 1);
+            }
+            let targetPriority = targetPageRules.rules[index].priority;
+            if (forward) {
+                targetPriority = targetPriority + 1;
+            }
+            GeoServerAPI.moveRules(targetPriority, rules).then(() => {
+                dispatch(loadRules(targetPage, true));
+            }).catch(() => {
+                dispatch(actionError("rulesmanager.errorMovingRules", "table"));
+            });
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorLoadingRules", "table"));
         });
     };
 }
@@ -144,8 +170,8 @@ function deleteRules() {
         const calls = rules.map(rule => GeoServerAPI.deleteRule(rule.id));
         axios.all(calls).then(() => {
             dispatch(loadRules(state.rulesPage || 1));
-        }).catch(error => {
-            dispatch(actionError(error, "table"));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorDeletingRules", "table"));
         });
     };
 }
@@ -156,9 +182,9 @@ function addRule() {
         const activeRule = state && state.activeRule || {};
         const rulesPage = state.rulesPage || 1;
         GeoServerAPI.addRule(activeRule.rule).then(() => {
-            dispatch(loadRules(rulesPage));
-        }).catch((error) => {
-            dispatch(actionError(error, "modal"));
+            dispatch(loadRules(rulesPage, true));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorAddingRule", "modal"));
         });
     };
 }
@@ -170,8 +196,8 @@ function updateRule() {
         const rulesPage = state.rulesPage || 1;
         GeoServerAPI.updateRule(activeRule.rule).then(() => {
             dispatch(loadRules(rulesPage));
-        }).catch((error) => {
-            dispatch(actionError(error, "modal"));
+        }).catch(() => {
+            dispatch(actionError("rulesmanager.errorUpdatingRule", "modal"));
         });
     };
 }
@@ -187,6 +213,7 @@ module.exports = {
     rulesSelected,
     loadRules,
     moveRules,
+    moveRulesToPage,
     updateActiveRule,
     updateFiltersValues,
     deleteRules,

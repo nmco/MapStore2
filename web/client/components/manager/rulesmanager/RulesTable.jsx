@@ -13,6 +13,9 @@ const _ = require('lodash');
 const RulesTableElement = require('./RulesTableElement');
 const LocaleUtils = require('../../../utils/LocaleUtils');
 
+const dragDropContext = require('react-dnd').DragDropContext;
+const html5Backend = require('react-dnd-html5-backend');
+
 const RulesTable = React.createClass({
     propTypes: {
         onSelectRules: React.PropTypes.func,
@@ -25,17 +28,17 @@ const RulesTable = React.createClass({
     },
     getDefaultProps() {
         return {
-            onSelectRules: () => [],
+            onSelectRules: () => {},
             rules: [],
-            selectedRules: [],
-            moveRules: () => []
+            selectedRules: []
         };
     },
     render() {
         const allChecked = this.props.selectedRules.length !== 0 &&
             this.props.selectedRules.length === this.props.rules.length;
         return (
-            <Table striped bordered condensed hover>
+            <Table className="rules-table" bordered condensed hover>
+                <col/>
                 <thead>
                     <tr>
                         <th>
@@ -58,6 +61,7 @@ const RulesTable = React.createClass({
                     {this.props.rules.map((rule, index) => {
                         const checked = this.isChecked(rule, this.props.selectedRules);
                         return (<RulesTableElement
+                            moveRules={this.props.moveRules}
                             onSelect={() => this.props.onSelectRules([rule], true, checked)}
                             rule={rule}
                             checked={checked}
@@ -92,4 +96,4 @@ const RulesTable = React.createClass({
     }
 });
 
-module.exports = RulesTable;
+module.exports = dragDropContext(html5Backend)(RulesTable);

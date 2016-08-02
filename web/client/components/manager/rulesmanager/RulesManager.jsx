@@ -11,10 +11,13 @@ const RulesTablePanel = require('./RulesTablePanel');
 const RulesFiltersPanel = require('./RulesFiltersPanel');
 const ActiveRuleModal = require('./ActiveRuleModal');
 
+require('./RulesManager.css');
+
 const RulesManager = React.createClass({
     propTypes: {
         onSelectRules: React.PropTypes.func,
         moveRules: React.PropTypes.func,
+        moveRulesToPage: React.PropTypes.func,
         loadRules: React.PropTypes.func,
         rules: React.PropTypes.array,
         rulesPage: React.PropTypes.number,
@@ -33,7 +36,8 @@ const RulesManager = React.createClass({
         services: React.PropTypes.object,
         activeRule: React.PropTypes.object,
         updateFiltersValues: React.PropTypes.func,
-        filtersValues: React.PropTypes.object
+        filtersValues: React.PropTypes.object,
+        error: React.PropTypes.object
     },
     render() {
         return (
@@ -47,17 +51,20 @@ const RulesManager = React.createClass({
                     services={this.props.services}
                     updateFiltersValues={this.props.updateFiltersValues}
                     filtersValues={this.props.filtersValues}
-                    loadRules={this.props.loadRules}/>
+                    loadRules={this.props.loadRules}
+                    error={this.props.error}/>
                 <RulesTablePanel
                     onSelectRules={this.props.onSelectRules}
                     deleteRules={this.props.deleteRules}
                     rules={this.props.rules}
                     selectedRules={this.props.selectedRules}
                     moveRules={this.props.moveRules}
+                    moveRulesToPage={this.props.moveRulesToPage}
                     loadRules={this.props.loadRules}
                     rulesPage={this.props.rulesPage}
                     rulesCount={this.props.rulesCount}
-                    updateActiveRule={this.props.updateActiveRule}/>
+                    updateActiveRule={this.props.updateActiveRule}
+                    error={this.props.error}/>
                 <ActiveRuleModal
                     updateActiveRule={this.props.updateActiveRule}
                     addRule={this.props.addRule}
@@ -68,7 +75,8 @@ const RulesManager = React.createClass({
                     loadLayers={this.props.loadLayers}
                     options={this.props.options}
                     services={this.props.services}
-                    activeRule={this.props.activeRule}/>
+                    activeRule={this.props.activeRule}
+                    error={this.props.error}/>
             </div>
         );
     }

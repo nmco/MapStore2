@@ -7,7 +7,8 @@
  */
 
 const React = require('react');
-const {Modal, Button} = require('react-bootstrap');
+const {Modal, Button, Alert} = require('react-bootstrap');
+
 const Message = require('../../I18N/Message');
 const RuleAttributes = require('./RuleAttributes');
 
@@ -22,14 +23,16 @@ const ActiveRuleModal = React.createClass({
         loadLayers: React.PropTypes.func,
         options: React.PropTypes.object,
         services: React.PropTypes.object,
-        activeRule: React.PropTypes.object
+        activeRule: React.PropTypes.object,
+        error: React.PropTypes.object
     },
     getDefaultProps() {
         return {
             updateActiveRule: () => {},
             addRule: () => {},
             updateRule: () => {},
-            activeRule: {}
+            activeRule: {},
+            error: {}
         };
     },
     onClose() {
@@ -65,7 +68,7 @@ const ActiveRuleModal = React.createClass({
                 </Modal.Header>
                 <Modal.Body>
                     <RuleAttributes
-                        loadRoles={this.props.loadRoles}
+                        loadRoles={() => this.props.loadRoles("modal")}
                         loadUsers={this.props.loadUsers}
                         loadWorkspaces={this.props.loadWorkspaces}
                         loadLayers={this.props.loadLayers}
@@ -74,16 +77,22 @@ const ActiveRuleModal = React.createClass({
                         updateRuleAttributes={this.getUpdateRuleAttributesHandler()}
                         ruleAttributes={this.props.activeRule.rule}
                         showAccess={true}
-                        containerClassName={"modal-rule"}
-                        selectClassName={"modal-rule-select"}/>
+                        containerClassName={"modal-rules"}
+                        selectClassName={"modal-rules-select"}
+                        context="modal"/>
                 </Modal.Body>
-                <Modal.Footer style={{'text-align': 'center'}}>
+                <Modal.Footer style={{textAlign: "center"}}>
                     <Button bsSize="small" bsStyle="primary" onClick={this.getOnSubmitHandler(status)}>
                         <Message msgId={buttonMsgId}/>
                     </Button>
                     <Button bsSize="small" bsStyle="primary" onClick={this.onClose}>
                         <Message msgId={"rulesmanager.close"}/>
                     </Button>
+                    { this.props.error.context === "modal" &&
+                        <Alert className="error-modal-panel" bsStyle="danger">
+                            <Message msgId={this.props.error.msgId}/>
+                        </Alert>
+                    }
                 </Modal.Footer>
             </Modal>
         );
